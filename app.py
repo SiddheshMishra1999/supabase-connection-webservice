@@ -9,8 +9,6 @@ from flask import Flask, request, render_template
 
 # pylint: disable=C0103
 app = Flask(__name__)
-# Creating an API object
-api = Api(app)
 
 # Connecting database
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -95,6 +93,35 @@ def getExpSpecificUser(experiment_creator):
         }
         exp_list.append(user_experiments)
     return{"UserS_experiments": exp_list}, 200
+
+
+app.get('/getUserById/<auth_id>')
+def getUserById(auth_id):
+    userfromId = supabase.table("users").select("*").eq("auth_id", auth_id).execute()
+    userfromIdStr = userfromId.json()
+    userfromIdObj = json.loads(userfromIdStr)
+    userData = userfromIdObj["data"]
+    for user in userData:
+        genderId = supabase.table("gender").select("gender").eq("gender_id", user["gender"]).execute().json()
+        gender = json.loads(genderId)["data"][0]["gender"]
+        roleId = supabase.table("roles").select("role_name").eq("role_id", user["role_id"]).execute().json()
+        role = json.loads(roleId)["data"][0]["role_name"]
+        print(gender)
+        print(role)
+        user_data = {
+                'user_id': user["user_id"], 
+                "first_name": user["first_name"],
+                "last_name":user["last_name"],
+                'email': user['email'], 
+                'gender':gender, 
+                'role': role,
+                "date_of_birth": user["date_of_birth"],
+                "avatar_url": user["avatar_url"], 
+                "password": user["password"],
+                "auth_id": user["auth_id"]
+            }
+        return {"User": user_data}, 200
+
 
 
     # def delete(self, id):
