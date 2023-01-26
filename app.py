@@ -95,7 +95,7 @@ def getExpSpecificUser(experiment_creator):
     return{"UserS_experiments": exp_list}, 200
 
 
-app.get('/getUserById/<auth_id>')
+@app.get('/getUserById/<auth_id>')
 def getUserById(auth_id):
     userfromId = supabase.table("users").select("*").eq("auth_id", auth_id).execute()
     userfromIdStr = userfromId.json()
@@ -106,8 +106,6 @@ def getUserById(auth_id):
         gender = json.loads(genderId)["data"][0]["gender"]
         roleId = supabase.table("roles").select("role_name").eq("role_id", user["role_id"]).execute().json()
         role = json.loads(roleId)["data"][0]["role_name"]
-        print(gender)
-        print(role)
         user_data = {
                 'user_id': user["user_id"], 
                 "first_name": user["first_name"],
