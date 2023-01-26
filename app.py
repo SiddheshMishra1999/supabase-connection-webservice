@@ -5,10 +5,7 @@ from flask_restful import Resource, Api
 from flask import Flask, request, render_template
 
 
-# Temp
-from dotenv import load_dotenv
-load_dotenv()
-#
+
 
 # pylint: disable=C0103
 app = Flask(__name__)
