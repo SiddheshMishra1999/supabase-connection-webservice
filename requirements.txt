@@ -1,0 +1,5 @@
+Flask==2.2.2
+requests==2.28.1
+ptvsd==4.3.2 # Required for debugging.
+supabase==0.7.1 
+Flask-RESTful==0.3.9 
