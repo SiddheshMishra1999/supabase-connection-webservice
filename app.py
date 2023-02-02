@@ -4,6 +4,9 @@ from supabase import create_client, Client
 from flask_restful import Resource, Api
 from flask import Flask, request, render_template
 import methods.experiment_methods  as exp
+import methods.user_methods as users
+import methods.member_methods as member
+from dotenv import load_dotenv
 
 from supabase_connection import supabase
 
@@ -11,6 +14,7 @@ from supabase_connection import supabase
 # pylint: disable=C0103
 app = Flask(__name__)
 
+load_dotenv()
 
 
 
@@ -18,93 +22,53 @@ app = Flask(__name__)
 def home():
     return "Webservice Connecting to Supabase"
 
-@app.get('/getAllUsers')
+# --------------------- User Table methods -----------------------------#
+
+# Route to get all users
+@app.get('/users/get/all')
 # For GET request to http://127.0.0.1:5000/getAllUsers
-def getUsers():
-    userApi = supabase.table("users").select('*').execute()
-    userStr = userApi.json()
-    userObject = json.loads(userStr)
-    allData= userObject["data"]
-    user_list = []
-    for user in allData:
-        user_data = {
-            'user_id': user["user_id"], 
-            "first_name": user["first_name"],
-            "last_name":user["last_name"],
-            'email': user['email'], 
-            'gender':user['gender'], 
-            'role': user['role_id'],
-            "date_of_birth": user["date_of_birth"],
-            "avatar_url": user["avatar_url"], 
-            "password": user["password"],
-            "auth_id": user["auth_id"]
-        }
-        user_list.append(user_data)
-    return {"Users": user_list}, 200
+def getAllUsers():
+    return users.allUsers()
 
-@app.post("/newExperiment")
-# For POST request to http://127.0.0.1:5000/newExperiment
-def postExperiment():
-    if request.is_json:
-        print(request.json["experiment_creator"])
-        print(request.json["experiment_name"])
-        print(request.json["pstatus_id"])
-        print(request.json["start_date"])
-        print(request.json["end_date"])
-        print(request.json["description"])
+# Route to get User info by auth id
+@app.get('/users/get/<auth_id>')
+def getSpecificUserInfo(auth_id):
+    return users.getUserById(auth_id)
 
 
-        experiment = supabase.table("experiment").insert(
-            {
-                "experiment_creator" : request.json["experiment_creator"],
-                "experiment_name" : request.json["experiment_name"],
-                "pstatus_id" : request.json["pstatus_id"],
-                "start_date" : request.json["start_date"],
-                "end_date" : request.json["end_date"],
-                "description" : request.json["description"]
-            }
-        ).execute()
-        return {"Success": 'the experiment has been added'}, 201
-    else:
-        return{'error': 'Request must be json'}, 400
-# /experiment/create or other entry points
-@app.get("/experimentsforSpecificUser/<experiment_creator>")
-# For GET request to http://127.0.0.1:5000/experimentsforSpecificUser/?
-def getSpecificUser(experiment_creator):
-    exp.getExpSpecificUser(experiment_creator)
+# --------------------- Experiment Table methods -----------------------------#
 
+# Route to Insert new Experiment
+@app.post("/experiment/insert")
+def insertExperiment():
+    return exp.insertNewExperiment()
 
+# Route to get Experiment from creator
+@app.get("/experiment/get/<experiment_creator>")
+def getSpecificUserExperiment(experiment_creator):
+    return exp.getExpSpecificUser(experiment_creator)
 
-@app.get('/getUserById/<auth_id>')
-def getUserById(auth_id):
-    userfromId = supabase.table("users").select("*").eq("auth_id", auth_id).execute()
-    userfromIdStr = userfromId.json()
-    userfromIdObj = json.loads(userfromIdStr)
-    userData = userfromIdObj["data"]
-    for user in userData:
-        genderId = supabase.table("gender").select("gender").eq("gender_id", user["gender"]).execute().json()
-        gender = json.loads(genderId)["data"][0]["gender"]
-        roleId = supabase.table("roles").select("role_name").eq("role_id", user["role_id"]).execute().json()
-        role = json.loads(roleId)["data"][0]["role_name"]
-        user_data = {
-                'user_id': user["user_id"], 
-                "first_name": user["first_name"],
-                "last_name":user["last_name"],
-                'email': user['email'], 
-                'gender':gender, 
-                'role': role,
-                "date_of_birth": user["date_of_birth"],
-                "avatar_url": user["avatar_url"], 
-                "password": user["password"],
-                "auth_id": user["auth_id"]
-            }
-        return {"User": user_data}, 200
+# Route to get all experiments
+@app.get("/experiment/get/all")
+def getAllExperiments():
+    return exp.allExperiments()
 
+# Route to get Experiment from creator
+@app.delete("/experiment/delete/<experiment_id>")
+def deleteExperiment(experiment_id):
+    return exp.deleteExperimentById(experiment_id)
 
+# --------------------- Members Table methods -----------------------------#
 
-    # def delete(self, id):
-    #     print("delete")
+# Route to get all members in an experiment
+@app.get("/members/get/<experiment_id>")
+def getMembersForExperiment(experiment_id):
+    return member.membersInExperiment(experiment_id)
 
+# Route to Insert new Member
+@app.post("/members/insert")
+def insertMember():
+    return member.insertMemberInExperiment()
 
 if __name__ == '__main__':
     server_port = os.environ.get('PORT', '8080')
