@@ -32,9 +32,39 @@ def membersInExperiment(experiment_id):
                 "join_date": member["join_date"]
             }
             member_list.append(member_data)
-        return {"Memebers": member_data}, 201, headers
+        return {"Memebers": member_list}, 201, headers
     else:
         return{"Error": "Experiment Does not exist"},400, headers
+
+# Get experiments from auth_id
+def experimentForMember(auth_id):
+    headers = {
+    'Access-Control-Allow-Origin': '*'
+    }
+    userfromId = supabase.table("users").select("user_id").eq("auth_id", auth_id).execute()
+    userfromIdStr = userfromId.json()
+    userfromIdObj = json.loads(userfromIdStr)
+    userData = userfromIdObj["data"]
+    if(userData):
+        experimentsforMembyID = supabase.table("members").select('*').eq("user_id", auth_id).execute()
+        experimentsStr = experimentsforMembyID.json()
+        experimentsObj = json.loads(experimentsStr)
+        experimentsData = experimentsObj["data"]
+        experiment_list = []
+        for member in experimentsData:
+            experimentNamefromId = supabase.table("experiment").select("experiment_name").eq("experiment_id", member["experiment_id"]).execute().json()
+            experimentName = json.loads(experimentNamefromId)["data"][0]
+ 
+            experiment_data ={
+                "epxeriment_id": member["experiment_id"],
+                "experiment_name" : experimentName,
+                "join_date": member["join_date"]
+            }
+            experiment_list.append(experiment_data)
+        return {"Experiments": experiment_list}, 201, headers
+    else:
+        return{"Error": "User Does not exist"},400, headers
+
 
 # Insert a member in an experiment using their auth_id
 def insertMemberInExperiment():
@@ -43,47 +73,31 @@ def insertMemberInExperiment():
     }
     if request.is_json:
         experiment_id = request.json["experiment_id"]
-        # experimentsfromId = supabase.table("experiment").select('*').eq("experiment_id", experiment_id).execute()
-        # experimentsStr = experimentsfromId.json()
-        # experimentsObject = json.loads(experimentsStr)
-        # allData= experimentsObject["data"]
-        # if(not allData):
-        #     return{"Error": "Experiment Does not exist"},400, headers
         auth_id = request.json["user_id"]
-        # userfromId = supabase.table("users").select("*").eq("auth_id", auth_id).execute()
-        # userfromIdStr = userfromId.json()
-        # userfromIdObj = json.loads(userfromIdStr)
-        # userData = userfromIdObj["data"]
-        # print(userData)
-        # if(not userData):
-        #     return{"Error": "User Does not exist"},400, headers
+
+        experimentsfromId = supabase.table("experiment").select('experiment_name').eq("experiment_id", experiment_id).execute()
+        experimentsStr = experimentsfromId.json()
+        experimentsObject = json.loads(experimentsStr)
+        allData= experimentsObject["data"]
+        if(not allData):
+            return{"Error": "Experiment Does not exist"},400, headers
+        userfromId = supabase.table("users").select("user_id").eq("auth_id", auth_id).execute()
+        userfromIdStr = userfromId.json()
+        userfromIdObj = json.loads(userfromIdStr)
+        userData = userfromIdObj["data"]
+        if(not userData):
+            return{"Error": "User Does not exist"},400, headers
+
         supabase.table("members").insert({
             "user_id": auth_id,
             "experiment_id": experiment_id,
             "join_date": str(timeNow)
             
         }).execute()
-        return {"Success": 'Member has been added'}, 201, headers
+        return {"Success": 'Member has been added'}, 201, headers       
     else:
         return{'error': 'Request must be json'}, 400, headers
 
-
-
-    # experimentsfromId = supabase.table("experiment").select('*').eq("experiment_id", experiment_id).execute()
-    # experimentsStr = experimentsfromId.json()
-    # experimentsObject = json.loads(experimentsStr)
-    # allData= experimentsObject["data"]
-    # if(allData):
-    #     userfromId = supabase.table("users").select("*").eq("auth_id", auth_id).execute()
-    #     userfromIdStr = userfromId.json()
-    #     userfromIdObj = json.loads(userfromIdStr)
-    #     userData = userfromIdObj["data"]
-    #     if(userData):
-            
-    #     else:
-    #         return{"Error": "User Does not exist"},400, headers
-    # else:
-    #     return{"Error": "Experiment Does not exist"},400, headers
 
 
 

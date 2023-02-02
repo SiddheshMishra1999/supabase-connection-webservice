@@ -6,6 +6,8 @@ from flask import Flask, request, render_template
 import methods.experiment_methods  as exp
 import methods.user_methods as users
 import methods.member_methods as member
+import methods.device_methods as device
+import methods.sensor_methods as sensor
 from dotenv import load_dotenv
 
 from supabase_connection import supabase
@@ -61,14 +63,29 @@ def deleteExperiment(experiment_id):
 # --------------------- Members Table methods -----------------------------#
 
 # Route to get all members in an experiment
-@app.get("/members/get/<experiment_id>")
+@app.get("/members/get/mem/<experiment_id>")
 def getMembersForExperiment(experiment_id):
     return member.membersInExperiment(experiment_id)
+
+# Route to get all experiments for a member
+@app.get("/members/get/exp/<auth_id>")
+def getExperimentsForMember(auth_id):
+    return member.experimentForMember(auth_id)
 
 # Route to Insert new Member
 @app.post("/members/insert")
 def insertMember():
     return member.insertMemberInExperiment()
+
+# --------------------- Device Table methods -----------------------------#
+@app.get("/device/get/all")
+def getAllDevices():
+    return device.allDevices()
+
+# --------------------- Sensor Table methods -----------------------------#
+@app.get("sensor/insert")
+def insertSensor():
+    return sensor.insertNewSensor()
 
 if __name__ == '__main__':
     server_port = os.environ.get('PORT', '8080')
