@@ -3,17 +3,15 @@ import json
 from supabase import create_client, Client
 from flask_restful import Resource, Api
 from flask import Flask, request, render_template
+import methods.experiment_methods  as exp
 
-
+from supabase_connection import supabase
 
 
 # pylint: disable=C0103
 app = Flask(__name__)
 
-# Connecting database
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY")
-supabase: Client = create_client(SUPABASE_URL,  SUPABASE_ANON_KEY)
+
 
 
 @app.route("/")
@@ -72,27 +70,9 @@ def postExperiment():
 # /experiment/create or other entry points
 @app.get("/experimentsforSpecificUser/<experiment_creator>")
 # For GET request to http://127.0.0.1:5000/experimentsforSpecificUser/?
-def getExpSpecificUser(experiment_creator):
-    experimentsfromId = supabase.table("experiment").select('*').eq("experiment_creator", experiment_creator).execute()
-    experimentsStr = experimentsfromId.json()
-    experimentsObject = json.loads(experimentsStr)
-    allData= experimentsObject["data"]
-    exp_list = []
-    for experiments in allData:
-        experiment_status = supabase.table("experiment_status").select("status_name").eq("pstatus_id", experiments["pstatus_id"]).execute().json()
-        status = json.loads(experiment_status)["data"][0]["status_name"]
-        user_experiments = {
-            "experiment_id": experiments["experiment_id"],
-            "experiment_name": experiments["experiment_name"],
-            "experiment_status": status,
-            "experiment_eligibility": experiments["eligibility"],
-            "num_of_participants": experiments["num_of_participants"],
-            "start_date": experiments["start_date"],
-            "end_date": experiments["end_date"],
-            "description": experiments["description"],
-        }
-        exp_list.append(user_experiments)
-    return{"UserS_experiments": exp_list}, 200
+def getSpecificUser(experiment_creator):
+    exp.getExpSpecificUser(experiment_creator)
+
 
 
 @app.get('/getUserById/<auth_id>')
