@@ -69,7 +69,7 @@ def postExperiment():
         return {"Success": 'the experiment has been added'}, 201
     else:
         return{'error': 'Request must be json'}, 400
-
+# /experiment/create or other entry points
 @app.get("/experimentsforSpecificUser/<experiment_creator>")
 # For GET request to http://127.0.0.1:5000/experimentsforSpecificUser/?
 def getExpSpecificUser(experiment_creator):
