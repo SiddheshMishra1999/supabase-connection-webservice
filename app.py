@@ -8,6 +8,8 @@ import methods.user_methods as users
 import methods.member_methods as member
 import methods.device_methods as device
 import methods.sensor_methods as sensor
+import methods.inventory_methods as inventory
+
 from dotenv import load_dotenv
 
 from supabase_connection import supabase
@@ -78,14 +80,36 @@ def insertMember():
     return member.insertMemberInExperiment()
 
 # --------------------- Device Table methods -----------------------------#
+
+# Route to get all devices
 @app.get("/device/get/all")
 def getAllDevices():
     return device.allDevices()
 
+# Route to Insert new Device
+@app.post("/device/insert")
+def insertDevice():
+    return device.insertNewDevice()
+
 # --------------------- Sensor Table methods -----------------------------#
-@app.get("sensor/insert")
+# Route to Insert new sensor
+@app.post("/sensor/insert")
 def insertSensor():
     return sensor.insertNewSensor()
+
+# Route to get the sensors in a specific device
+@app.get("/sensor/get/device/<device_id>")
+def getSensorsForDevice(device_id):
+    return sensor.sensorsForDevice(device_id)
+
+
+# --------------------- Device Table methods -----------------------------#
+
+# Route to get all Inventory items
+@app.get("/inventory/get/all")
+def getAllItemsInInventory():
+    return inventory.allItemsInInventory()
+
 
 if __name__ == '__main__':
     server_port = os.environ.get('PORT', '8080')
