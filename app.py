@@ -10,7 +10,6 @@ import methods.device_methods as device
 import methods.sensor_methods as sensor
 import methods.inventory_methods as inventory
 
-from dotenv import load_dotenv
 
 from supabase_connection import supabase
 
@@ -18,7 +17,6 @@ from supabase_connection import supabase
 # pylint: disable=C0103
 app = Flask(__name__)
 
-load_dotenv()
 
 
 
@@ -103,7 +101,7 @@ def getSensorsForDevice(device_id):
     return sensor.sensorsForDevice(device_id)
 
 
-# --------------------- Device Table methods -----------------------------#
+# --------------------- Inventory Table methods -----------------------------#
 
 # Route to get all Inventory items
 @app.get("/inventory/get/all")
