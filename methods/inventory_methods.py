@@ -1,9 +1,14 @@
 import json
 from supabase_connection import supabase
 from flask import Flask, request, render_template
+import methods.exisitance_check as check
+from datetime import datetime, timedelta
+
+
+# current time
+timeNow = datetime.now()
 
 # This table is used to see how many devices we have in store and how many are in use
-
 def allItemsInInventory():
     headers = {
     'Access-Control-Allow-Origin': '*'
@@ -27,6 +32,7 @@ def allItemsInInventory():
         condition = dconditionObj["data"][0]["condition_of_device"]
 
         inventory_data = {
+            "inventory_id": item["inventory_id"],
             "device_id": item["device_id"],
             "device_name": deviceName,
             "device_status": statusName,
@@ -35,3 +41,39 @@ def allItemsInInventory():
         }
         inventorylist.append(inventory_data)
     return {"Inventory" : inventorylist } ,201, headers
+
+# Insert a new inventory item
+def addInventoryItem():
+    headers = {
+        'Access-Control-Allow-Origin': '*'
+    }
+    if request.is_json:
+        deviceData = check.deviceCheck(request.json["device_id"])
+        if(not deviceData):
+            return{'Error': 'Device does not exist'}, 400, headers
+        
+        supabase.table("inventory").insert({
+             "device_id": request.json["device_id"],
+             "istatus_id": request.json["istatus_id"],
+             "condition_id": request.json["condition_id"],
+             "date_added": str(timeNow)
+
+        }).execute()
+        return {"Success": 'Inventory item has been added'}, 201, headers
+    else:
+        return{'error': 'Request must be json'}, 400, headers
+
+# get inventory ids from device id which are in use
+def inventoryIdFromDeviceId(device_id):
+    deviceData = check.deviceCheck(device_id)
+    if(deviceData):
+        inventoryApi = supabase.table("inventory").select('inventory_id').eq("device_id", device_id).eq("istatus_id", 2).execute()
+        inventoryStr = inventoryApi.json()
+        inventoryObject = json.loads(inventoryStr)
+        allItems = inventoryObject["data"]
+        inventorylist = []
+        for item in allItems:
+            inventorylist.append(item["inventory_id"])
+        return inventorylist
+    else:
+        return {"Error": "Device Does not exist"}

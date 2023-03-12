@@ -1,6 +1,7 @@
 import json
 from supabase_connection import supabase
 from flask import Flask, request, render_template
+import methods.exisitance_check as check
 
 
 # Get mothod to retreive all users in the Supabase database
@@ -35,10 +36,7 @@ def getUserById(auth_id):
     headers = {
     'Access-Control-Allow-Origin': '*'
     }
-    userfromId = supabase.table("users").select("*").eq("auth_id", auth_id).execute()
-    userfromIdStr = userfromId.json()
-    userfromIdObj = json.loads(userfromIdStr)
-    userData = userfromIdObj["data"]
+    userData = check.userCheck(auth_id)
     if(userData):
 
         for user in userData:

@@ -9,6 +9,8 @@ import methods.member_methods as member
 import methods.device_methods as device
 import methods.sensor_methods as sensor
 import methods.inventory_methods as inventory
+import methods.usage_methods as usage
+
 
 
 from supabase_connection import supabase
@@ -46,7 +48,7 @@ def insertExperiment():
     return exp.insertNewExperiment()
 
 # Route to get Experiment from creator
-@app.get("/experiment/get/<experiment_creator>")
+@app.get("/experiment/get/creator/<experiment_creator>")
 def getSpecificUserExperiment(experiment_creator):
     return exp.getExpSpecificUser(experiment_creator)
 
@@ -55,10 +57,16 @@ def getSpecificUserExperiment(experiment_creator):
 def getAllExperiments():
     return exp.allExperiments()
 
-# Route to get Experiment from creator
+# Route to delete specific experiment 
 @app.delete("/experiment/delete/<experiment_id>")
 def deleteExperiment(experiment_id):
     return exp.deleteExperimentById(experiment_id)
+
+# Route to get a specific Experiment
+@app.get("/experiment/get/<experiment_id>")
+def getSpecificExperiment(experiment_id):
+    return exp.getExperimentById(experiment_id)
+
 
 # --------------------- Members Table methods -----------------------------#
 
@@ -72,10 +80,20 @@ def getMembersForExperiment(experiment_id):
 def getExperimentsForMember(auth_id):
     return member.experimentForMember(auth_id)
 
+# Route to get member count in an experiment 
+@app.get("/members/get/count/<experiment_id>")
+def getMemberCountForExperiment(experiment_id):
+    return member.membersCountInExperiment(experiment_id)
+
 # Route to Insert new Member
 @app.post("/members/insert")
 def insertMember():
     return member.insertMemberInExperiment()
+
+# Route to delete a member from experiment 
+@app.delete("/members/delete/<auth_id>/<experiment_id>")
+def deleteMember(experiment_id, auth_id):
+    return member.deleteMemberFromExp(auth_id,experiment_id)
 
 # --------------------- Device Table methods -----------------------------#
 
@@ -88,6 +106,11 @@ def getAllDevices():
 @app.post("/device/insert")
 def insertDevice():
     return device.insertNewDevice()
+
+# Route to get a specific device details with all its sensors
+@app.get("/device/get/<device_id>")
+def getSpecificDeviceInfo(device_id):
+    return device.getSpecificDevice(device_id)
 
 # --------------------- Sensor Table methods -----------------------------#
 # Route to Insert new sensor
@@ -107,6 +130,45 @@ def getSensorsForDevice(device_id):
 @app.get("/inventory/get/all")
 def getAllItemsInInventory():
     return inventory.allItemsInInventory()
+
+# Route to Insert new inventory item
+@app.post("/inventory/insert")
+def insertInventory():
+    return inventory.addInventoryItem()
+
+
+# --------------------- Usage Table methods -----------------------------# 
+# Route to get specific usage id
+@app.get("/usage/get/<auth_id>/<experiment_id>")
+def getUsageIdFromUsrExp(auth_id, experiment_id):
+    return usage.getSpecificUseageIdFromUsrExp(auth_id, experiment_id)
+
+# Route to get usage from usage id
+@app.get("/usage/get/<usage_id>")
+def getUsageFromUsageId(usage_id):
+    return usage.getUseageInfo(usage_id)
+
+# Route to get usage from device name
+@app.get("/usage/get/device/<device_name>")
+def getUsageIdFromDeviceName(device_name):
+    return usage.getUseageIdfromName(device_name)
+
+# Route to get all usage
+@app.get("/usage/get/all")
+def getAllUsages():
+    return usage.getAllUsage()
+
+# Route to Insert new usage
+@app.post("/usage/insert")
+def insertUsage():
+    return usage.insertNewUsage()
+
+# Route to update the usage end date
+@app.put("/usage/update/<usage_id>")
+def putUsageEndDate(usage_id):
+    return usage.updateUsageId(usage_id)
+
+
 
 
 if __name__ == '__main__':

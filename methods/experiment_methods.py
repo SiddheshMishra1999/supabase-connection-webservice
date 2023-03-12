@@ -1,7 +1,7 @@
 import json
 from supabase_connection import supabase
 from flask import Flask, request, render_template
-
+import methods.exisitance_check as check
 
 # Retrieve a specific user's experiments
 def getExpSpecificUser(experiment_creator):
@@ -57,6 +57,31 @@ def insertNewExperiment():
     else:
         return{'error': 'Request must be json'}, 400, headers
 
+# Get a specific experiment 
+def getExperimentById(experiment_id):
+    headers = {
+        'Access-Control-Allow-Origin': '*'
+    }
+    allData = check.experimentCheck(experiment_id)
+    if(allData):
+        experiment_status = supabase.table("experiment_status").select("status_name").eq("pstatus_id", allData[0]["pstatus_id"]).execute().json()
+        status = json.loads(experiment_status)["data"][0]["status_name"]
+        experiment_data = {
+            "experiment_id": allData[0]["experiment_id"],
+            "experiment_creator": allData[0]["experiment_creator"],
+            "experiment_name": allData[0]["experiment_name"],
+            "experiment_status": status,
+            "experiment_eligibility": allData[0]["eligibility"],
+            "num_of_participants": allData[0]["num_of_participants"],
+            "start_date": allData[0]["start_date"],
+            "end_date": allData[0]["end_date"],
+            "description": allData[0]["description"],
+        }
+        return{"Experiment": experiment_data}, 201, headers
+    else:
+        return{"Error": "Experiment Does not exist"},400, headers
+
+
 # Get all Experiments from Supabase
 def allExperiments():
     experiments = supabase.table("experiment").select('*').execute()
@@ -90,10 +115,7 @@ def deleteExperimentById(experiment_id):
     headers = {
         'Access-Control-Allow-Origin': '*'
     }
-    experimentsfromId = supabase.table("experiment").select('*').eq("experiment_id", experiment_id).execute()
-    experimentsStr = experimentsfromId.json()
-    experimentsObject = json.loads(experimentsStr)
-    allData= experimentsObject["data"]
+    allData = check.experimentCheck(experiment_id)
     if(allData):
         supabase.table("experiment").delete().eq("experiment_id", experiment_id).execute()
         return{"Success": "Experiment has been Deleted"}, 201, headers

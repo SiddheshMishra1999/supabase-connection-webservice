@@ -1,6 +1,7 @@
 import json
 from supabase_connection import supabase
 from flask import Flask, request, render_template
+import methods.exisitance_check as check
 
 
 # Add a new sensor to the sensor table
@@ -30,10 +31,7 @@ def sensorsForDevice(device_id):
     headers = {
     'Access-Control-Allow-Origin': '*'
     }
-    deviceAPI = supabase.table("device").select("device_name").eq("device_id", device_id).execute()
-    deviceStr = deviceAPI.json()
-    deviceObj = json.loads(deviceStr)
-    deviceData = deviceObj["data"]
+    deviceData = check.deviceCheck(device_id)
     if(deviceData):
         sensor_list = []
         sensorsApi = supabase.table("sensor").select("*").eq("device_id", device_id).execute()

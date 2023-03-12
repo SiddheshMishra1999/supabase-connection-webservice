@@ -1,6 +1,8 @@
 import json
 from supabase_connection import supabase
 from flask import Flask, request, render_template
+import methods.exisitance_check as check
+
 
 # Retrieve all devices from Supabase
 def allDevices():
@@ -21,7 +23,6 @@ def allDevices():
         device_list.append(device_data)
     return {"Device" :device_list } ,201, headers
 
-
 # Insert a new device to Supabase
 def insertNewDevice():
     headers = {
@@ -38,6 +39,30 @@ def insertNewDevice():
     else:
         return{'error': 'Request must be json'}, 400, headers
 
+# get a specific device details with all its sensors
+def getSpecificDevice(device_id):
+    headers = {
+    'Access-Control-Allow-Origin': '*'
+    }
+    deviceData = check.deviceCheck(device_id)
+    if(deviceData):
+        sensorApi = supabase.table("sensor").select('sensor_name').eq("device_id", device_id).execute()
+        sensoreStr = sensorApi.json()
+        sensorObject = json.loads(sensoreStr)
+        allSensors = sensorObject["data"]
+        sensor_list = []
+        for sensor in allSensors:
+            print(sensor)
+            sensor_list.append(sensor["sensor_name"])
+        device_details = {
+            'device_id': device_id,
+            'device_name': deviceData[0]["device_name"],
+            'description': deviceData[0]["description"],
+            'sensors': sensor_list
+        }
 
+        return {"Device": device_details}, 201, headers
+    else:
+        return{"Error": "Device Does not exist"},400, headers
 
 
