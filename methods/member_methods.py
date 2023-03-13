@@ -148,6 +148,19 @@ def deleteMemberFromExp(auth_id,experiment_id):
     membersData = membersObj["data"]
     if(membersData):
         supabase.table("members").delete().eq("experiment_id", experiment_id).eq("user_id", auth_id).execute()
+        usagefromId = supabase.table("usage").select('*').eq("user_id", auth_id).eq("experiment_id", experiment_id).is_("end_date", "null").execute()
+        usageStr = usagefromId.json()
+        usageObj = json.loads(usageStr)
+        usageData = usageObj["data"]
+        if(usageData):
+            current_date = str(timeNow)
+            date_now = current_date.split(" ")[0]
+            supabase.table("usage").update({
+                "end_date": date_now
+            }).eq("usage_id", usageData[0]["usage_id"]).execute()
+            supabase.table("inventory").update({
+                "istatus_id": 1
+            }).eq("inventory_id", usageData[0]["inventory_id"]).execute()
         return{"Success": "Member has been removed from experiment"}, 201, headers
     else:
         return{"Error": "Member is not in Experiment"},400, headers

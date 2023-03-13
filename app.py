@@ -137,6 +137,11 @@ def insertInventory():
     return inventory.addInventoryItem()
 
 
+# Route to get all available Inventory items
+@app.get("/inventory/get/available")
+def getAllAvailableItemsInInventory():
+    return inventory.getAvailableDevices()
+
 # --------------------- Usage Table methods -----------------------------# 
 # Route to get specific usage id
 @app.get("/usage/get/<auth_id>/<experiment_id>")

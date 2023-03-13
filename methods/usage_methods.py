@@ -54,6 +54,9 @@ def insertNewUsage():
              "start_date": request.json["start_date"],
              "end_date": request.json["end_date"],
         }).execute()
+        supabase.table("inventory").update({
+                "istatus_id": 2
+            }).eq("inventory_id", request.json["inventory_id"]).execute()
         return {"Success": 'Usage has been added'}, 201, headers
     else:
         return{'error': 'Request must be json'}, 400, headers
