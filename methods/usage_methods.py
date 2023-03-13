@@ -47,17 +47,24 @@ def insertNewUsage():
         userData = check.userCheck(request.json["user_id"])
         if(not userData):
             return{"Error": "User does not exist"},400, headers
-        supabase.table("usage").insert({
-             "experiment_id": request.json["experiment_id"],
-             "user_id": request.json["user_id"],
-             "inventory_id": request.json["inventory_id"],
-             "start_date": request.json["start_date"],
-             "end_date": request.json["end_date"],
-        }).execute()
-        supabase.table("inventory").update({
-                "istatus_id": 2
-            }).eq("inventory_id", request.json["inventory_id"]).execute()
-        return {"Success": 'Usage has been added'}, 201, headers
+        member = supabase.table("members").select('*').eq("experiment_id", request.json["experiment_id"]).eq("user_id", request.json["user_id"]).execute()
+        membersStr = member.json()
+        membersObj = json.loads(membersStr)
+        membersData = membersObj["data"]
+        if(membersData):
+            supabase.table("usage").insert({
+                "experiment_id": request.json["experiment_id"],
+                "user_id": request.json["user_id"],
+                "inventory_id": request.json["inventory_id"],
+                "start_date": request.json["start_date"],
+                "end_date": request.json["end_date"],
+            }).execute()
+            supabase.table("inventory").update({
+                    "istatus_id": 2
+                }).eq("inventory_id", request.json["inventory_id"]).execute()
+            return {"Success": 'Usage has been added'}, 201, headers
+        else:
+            return{"Error": "Member is not in Experiment"},400, headers
     else:
         return{'error': 'Request must be json'}, 400, headers
     
