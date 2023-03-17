@@ -56,7 +56,7 @@ def insertNewUsage():
                 "experiment_id": request.json["experiment_id"],
                 "user_id": request.json["user_id"],
                 "inventory_id": request.json["inventory_id"],
-                "start_date": request.json["start_date"],
+                "start_date": str(timeNow),
                 "end_date": request.json["end_date"],
             }).execute()
             supabase.table("inventory").update({

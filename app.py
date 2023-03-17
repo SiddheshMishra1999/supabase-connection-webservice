@@ -58,7 +58,7 @@ def getAllExperiments():
     return exp.allExperiments()
 
 # Route to delete specific experiment 
-@app.delete("/experiment/delete/<experiment_id>")
+@app.post("/experiment/delete/<experiment_id>")
 def deleteExperiment(experiment_id):
     return exp.deleteExperimentById(experiment_id)
 
@@ -91,7 +91,7 @@ def insertMember():
     return member.insertMemberInExperiment()
 
 # Route to delete a member from experiment 
-@app.delete("/members/delete/<auth_id>/<experiment_id>")
+@app.post("/members/delete/<auth_id>/<experiment_id>")
 def deleteMember(experiment_id, auth_id):
     return member.deleteMemberFromExp(auth_id,experiment_id)
 
