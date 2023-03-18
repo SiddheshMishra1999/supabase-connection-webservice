@@ -33,41 +33,37 @@ def getAllUsage():
     
 
 # Add a new usage to the usage table
-def insertNewUsage():
+def insertNewUsage(experiment_id, user_id, inventory_id):
     headers = {
         'Access-Control-Allow-Origin': '*'
     }
-    if request.is_json:
-        inventoryData = check.inventoryCheck(request.json["inventory_id"])
-        if(not inventoryData):
-            return{'Error': 'Device does not exist'}, 400, headers
-        allData = check.experimentCheck(request.json["experiment_id"])
-        if(not allData):
-            return{"Error": "Experiment does not exist"},400, headers
-        userData = check.userCheck(request.json["user_id"])
-        if(not userData):
-            return{"Error": "User does not exist"},400, headers
-        member = supabase.table("members").select('*').eq("experiment_id", request.json["experiment_id"]).eq("user_id", request.json["user_id"]).execute()
-        membersStr = member.json()
-        membersObj = json.loads(membersStr)
-        membersData = membersObj["data"]
-        if(membersData):
-            supabase.table("usage").insert({
-                "experiment_id": request.json["experiment_id"],
-                "user_id": request.json["user_id"],
-                "inventory_id": request.json["inventory_id"],
-                "start_date": str(timeNow),
-                "end_date": request.json["end_date"],
-            }).execute()
-            supabase.table("inventory").update({
-                    "istatus_id": 2
-                }).eq("inventory_id", request.json["inventory_id"]).execute()
-            return {"Success": 'Usage has been added'}, 201, headers
-        else:
-            return{"Error": "Member is not in Experiment"},400, headers
+    inventoryData = check.inventoryCheck(inventory_id)
+    if(not inventoryData):
+        return{'Error': 'Device does not exist'}, 400, headers
+    allData = check.experimentCheck(experiment_id)
+    if(not allData):
+        return{"Error": "Experiment does not exist"},400, headers
+    userData = check.userCheck(user_id)
+    if(not userData):
+        return{"Error": "User does not exist"},400, headers
+    member = supabase.table("members").select('*').eq("experiment_id", experiment_id).eq("user_id", user_id).execute()
+    membersStr = member.json()
+    membersObj = json.loads(membersStr)
+    membersData = membersObj["data"]
+    if(membersData):
+        supabase.table("usage").insert({
+            "experiment_id": experiment_id,
+            "user_id": user_id,
+            "inventory_id": inventory_id,
+            "start_date": str(timeNow),
+        }).execute()
+        supabase.table("inventory").update({
+                "istatus_id": 2
+            }).eq("inventory_id", inventory_id).execute()
+        return {"Success": 'Usage has been added'}, 201, headers
     else:
-        return{'error': 'Request must be json'}, 400, headers
-    
+        return{"Error": "Member is not in Experiment"},400, headers
+
 # Update the end date of a usage item
 def updateUsageId(usage_id):
     headers = {
@@ -95,7 +91,7 @@ def updateUsageId(usage_id):
     else:
         return{'error': 'Request must be json'}, 400, headers
 
-# Get usage based on user id and experiment id
+# Get device name based on user id and experiment id
 def getSpecificUseageIdFromUsrExp(user_id, experiment_id):
     headers = {
         'Access-Control-Allow-Origin': '*'
@@ -108,13 +104,27 @@ def getSpecificUseageIdFromUsrExp(user_id, experiment_id):
     if(not userData):
         return{"Error": "User does not exist"},400, headers
     if(userData and allData):
-        usageIdQuery = supabase.table("usage").select("usage_id").eq("user_id", user_id).eq("experiment_id", experiment_id).execute()
+        usageIdQuery = supabase.table("usage").select("usage_id").eq("user_id", user_id).eq("experiment_id", experiment_id).is_("end_date", "null").execute()
         usageIdStr = usageIdQuery.json()
         usageIdObj = json.loads(usageIdStr)
         usageId = usageIdObj["data"]
+        usageData = check.usageCheck(usageId[0]["usage_id"])
+        if(usageData):
+            inventory_id = usageData[0]["inventory_id"]
+            deviceid = supabase.table("inventory").select("device_id").eq("inventory_id", inventory_id).execute()
+            deviceidStr = deviceid.json()
+            deviceidObj = json.loads(deviceidStr)
+            deviceId = deviceidObj["data"][0]["device_id"]
+            deviceName = supabase.table("device").select("device_name").eq("device_id", deviceId).execute()
+            deviceNameStr = deviceName.json()
+            deviceNameObj = json.loads(deviceNameStr)
+            devicename = deviceNameObj["data"][0]["device_name"]
 
 
-        return {"Usage": usageId }, 201, headers
+            
+            return {"Device_name": devicename }, 201, headers
+        else:
+            return{"Error": "Usage does not exist"},400, headers
     else:
         return{"Error": "User and/or Experiment does not exist"},400, headers
 

@@ -164,9 +164,9 @@ def getAllUsages():
     return usage.getAllUsage()
 
 # Route to Insert new usage
-@app.post("/usage/insert")
-def insertUsage():
-    return usage.insertNewUsage()
+@app.post("/usage/insert/<experiment_id>/<user_id>/<inventory_id>")
+def insertUsage(experiment_id, user_id, inventory_id):
+    return usage.insertNewUsage(experiment_id, user_id, inventory_id)
 
 # Route to update the usage end date
 @app.put("/usage/update/<usage_id>")
