@@ -43,9 +43,15 @@ def getSpecificUserInfo(auth_id):
 # --------------------- Experiment Table methods -----------------------------#
 
 # Route to Insert new Experiment
-@app.post("/experiment/insert")
-def insertExperiment():
-    return exp.insertNewExperiment()
+@app.post("/experiment/insert/<experiment_creator>/<experiment_name>/<pstatus_id>/<start_date>/<num_of_participants>/<end_date>/<eligibility>/<description>")
+def insertExperiment(experiment_creator, experiment_name, pstatus_id, start_date, num_of_participants, end_date, eligibility, description):
+    return exp.insertNewExperiment(experiment_creator, experiment_name, pstatus_id, start_date, num_of_participants, end_date, eligibility, description)
+
+# Route to update an Experiment
+@app.post("/experiment/update/<experiment_id>/<experiment_name>/<pstatus_id>/<start_date>/<num_of_participants>/<end_date>/<eligibility>/<description>")
+def updateOldExperiment(experiment_id, experiment_name, pstatus_id, start_date, num_of_participants, end_date, eligibility, description):
+    return exp.updateExperiment(experiment_id, experiment_name, pstatus_id, start_date, num_of_participants, end_date, eligibility, description)
+
 
 # Route to get Experiment from creator
 @app.get("/experiment/get/creator/<experiment_creator>")
@@ -75,6 +81,11 @@ def getSpecificExperiment(experiment_id):
 def getMembersForExperiment(experiment_id):
     return member.membersInExperiment(experiment_id)
 
+# Route to get all experiment id in members table 
+@app.get("/members/get/expid")
+def getExperimentIdInMembers():
+    return member.expInMembersTable()
+
 # Route to get all experiments for a member
 @app.get("/members/get/exp/<auth_id>")
 def getExperimentsForMember(auth_id):
@@ -86,9 +97,9 @@ def getMemberCountForExperiment(experiment_id):
     return member.membersCountInExperiment(experiment_id)
 
 # Route to Insert new Member
-@app.post("/members/insert")
-def insertMember():
-    return member.insertMemberInExperiment()
+@app.post("/members/insert/<experiment_id>/<auth_id>")
+def insertMember(experiment_id, auth_id):
+    return member.insertMemberInExperiment(experiment_id, auth_id)
 
 # Route to delete a member from experiment 
 @app.post("/members/delete/<auth_id>/<experiment_id>")

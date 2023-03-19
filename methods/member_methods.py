@@ -39,6 +39,22 @@ def membersCountInExperiment(experiment_id):
         return{"Error": "Experiment Does not exist"},400, headers
 
 
+# Get experiments from members table
+def expInMembersTable():
+    headers = {
+    'Access-Control-Allow-Origin': '*'
+    }
+    experimentsinMemb = supabase.table("members").select('experiment_id').execute()
+    experimentsinMembStr = experimentsinMemb.json()
+    experimentsinMembObj = json.loads(experimentsinMembStr)
+    experimentsinMembData = experimentsinMembObj["data"]
+    # Store unique experiment id
+    experimentid_set = set()
+    for exp in experimentsinMembData:
+        experimentid_set.add(exp['experiment_id'])
+    experimentid_list = list(experimentid_set) 
+    return {"Exp_id": experimentid_list}, 201, headers
+
 # Get members in an experiment
 def membersInExperiment(experiment_id):
     headers = {
@@ -58,8 +74,7 @@ def membersInExperiment(experiment_id):
             memberName = f"{memberFirstName} {memberLastName}"
             member_data ={
                 "user_id": member["user_id"],
-                "member_name" : memberName,
-                "join_date": member["join_date"]
+                
             }
             member_list.append(member_data)
         return {"Memebers": member_list}, 201, headers
@@ -94,42 +109,39 @@ def experimentForMember(auth_id):
 
 
 # Insert a member in an experiment using their auth_id
-def insertMemberInExperiment():
+def insertMemberInExperiment(experiment_id, auth_id):
     headers = {
     'Access-Control-Allow-Origin': '*'
     }
-    if request.is_json:
-        experiment_id = request.json["experiment_id"]
-        auth_id = request.json["user_id"]
 
-        allData = check.experimentCheck(experiment_id)
-        if(not allData):
-            return{"Error": "Experiment Does not exist"},400, headers
-        userData = check.userCheck(auth_id)
-        if(not userData):
-            return{"Error": "User Does not exist"},400, headers
-        # check max user 
-        maxParticipant = int(allData[0]["num_of_participants"])
-        counter = int(memberCount(experiment_id))
-        if(counter >= maxParticipant):
-            return{"Error": "Maximum number of participant already in the experiment"},400, headers
-       
-        members = supabase.table("members").select('*').eq("experiment_id", experiment_id).execute()
-        membersStr = members.json()
-        membersObj = json.loads(membersStr)
-        membersData = membersObj["data"]
-        for member in membersData:
-            if member["user_id"] == auth_id:
-                return{"Error": "User already in this experiment"},400, headers
-        supabase.table("members").insert({
-            "user_id": auth_id,
-            "experiment_id": experiment_id,
-            "join_date": str(timeNow)
-            
-        }).execute()
-        return {"Success": 'Member has been added'}, 201, headers       
-    else:
-        return{'error': 'Request must be json'}, 400, headers
+
+    allData = check.experimentCheck(experiment_id)
+    if(not allData):
+        return{"Error": "Experiment Does not exist"},400, headers
+    userData = check.userCheck(auth_id)
+    if(not userData):
+        return{"Error": "User Does not exist"},400, headers
+    # check max user 
+    maxParticipant = int(allData[0]["num_of_participants"])
+    counter = int(memberCount(experiment_id))
+    if(counter >= maxParticipant):
+        return{"Error": "Maximum number of participant already in the experiment"},400, headers
+    
+    members = supabase.table("members").select('*').eq("experiment_id", experiment_id).execute()
+    membersStr = members.json()
+    membersObj = json.loads(membersStr)
+    membersData = membersObj["data"]
+    for member in membersData:
+        if member["user_id"] == auth_id:
+            return{"Error": "User already in this experiment"},400, headers
+    supabase.table("members").insert({
+        "user_id": auth_id,
+        "experiment_id": experiment_id,
+        "join_date": str(timeNow)
+        
+    }).execute()
+    return {"Success": 'Member has been added'}, 201, headers       
+
     
 # Delete a member from exp
 def deleteMemberFromExp(auth_id,experiment_id):

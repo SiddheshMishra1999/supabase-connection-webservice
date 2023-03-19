@@ -16,17 +16,15 @@ def getExpSpecificUser(experiment_creator):
        
         exp_list = []
         for experiments in allData:
-            experiment_status = supabase.table("experiment_status").select("status_name").eq("pstatus_id", experiments["pstatus_id"]).execute().json()
-            status = json.loads(experiment_status)["data"][0]["status_name"]
+           
             user_experiments = {
-                "experiment_id": experiments["experiment_id"],
+                "experiment_creator": experiments["experiment_creator"],
                 "experiment_name": experiments["experiment_name"],
-                "experiment_status": status,
-                "experiment_eligibility": experiments["eligibility"],
+                "experiment_id": experiments["experiment_id"],
+                "experiment_status": experiments["pstatus_id"],
                 "num_of_participants": experiments["num_of_participants"],
-                "start_date": experiments["start_date"],
-                "end_date": experiments["end_date"],
-                "description": experiments["description"],
+
+
             }
             exp_list.append(user_experiments)
         return{"User_experiments": exp_list}, 201, headers
@@ -35,27 +33,78 @@ def getExpSpecificUser(experiment_creator):
 
 
 # Add a new experiment to the experiment table
-def insertNewExperiment():
+def insertNewExperiment(experiment_creator, experiment_name, pstatus_id, start_date, num_of_participants, end_date, eligibility, description):
     headers = {
         'Access-Control-Allow-Origin': '*'
     }
-    if request.is_json:
+    if(end_date == "null"):
+        supabase.table("experiment").insert(
+        {
+            "experiment_creator" : str(experiment_creator),
+            "experiment_name" : str(experiment_name),
+            "pstatus_id" : pstatus_id,
+            "start_date" : str(start_date),
+            "num_of_participants": num_of_participants,
+            "eligibility" : str(eligibility),
+            "description" : str(description)
+        }
+        ).execute()
+        return {"Success": 'the experiment has been added'}, 201, headers
+    else:
+    # if request.is_json:
         supabase.table("experiment").insert(
             {
-                "experiment_creator" : request.json["experiment_creator"],
-                "experiment_name" : request.json["experiment_name"],
-                "pstatus_id" : request.json["pstatus_id"],
-                "start_date" : request.json["start_date"],
-                "num_of_participants": request.json["num_of_participants"],
-                "end_date" : request.json["end_date"],
-                "eligibility" : request.json["eligibility"],
-                "description" : request.json["description"]
+                "experiment_creator" : str(experiment_creator),
+                "experiment_name" : str(experiment_name),
+                "pstatus_id" : pstatus_id,
+                "start_date" : str(start_date),
+                "num_of_participants": num_of_participants,
+                "end_date" : str(end_date),
+                "eligibility" : str(eligibility),
+                "description" : str(description)
             }
         ).execute()
 
         return {"Success": 'the experiment has been added'}, 201, headers
+    # else:
+    #     return{'error': 'Request must be json'}, 400, headers
+
+# update an experiment to the experiment table
+def updateExperiment(experiment_id, experiment_name, pstatus_id, start_date, num_of_participants, end_date, eligibility, description):
+    headers = {
+        'Access-Control-Allow-Origin': '*'
+    }
+    allData = check.experimentCheck(experiment_id)
+    if(allData):
+        if(end_date == "null"):
+            supabase.table("experiment").update(
+            {
+                "experiment_name" : str(experiment_name),
+                "pstatus_id" : pstatus_id,
+                "start_date" : str(start_date),
+                "num_of_participants": num_of_participants,
+                "eligibility" : str(eligibility),
+                "description" : str(description)
+            }
+            ).eq("experiment_id", experiment_id).execute()
+            return {"Success": 'the experiment has been added'}, 201, headers
+        else:
+        # if request.is_json:
+            supabase.table("experiment").update(
+                {
+                    "experiment_name" : str(experiment_name),
+                    "pstatus_id" : pstatus_id,
+                    "start_date" : str(start_date),
+                    "num_of_participants": num_of_participants,
+                    "end_date" : str(end_date),
+                    "eligibility" : str(eligibility),
+                    "description" : str(description)
+                }
+            ).eq("experiment_id", experiment_id).execute()
+
+            return {"Success": 'the experiment has been added'}, 201, headers
     else:
-        return{'error': 'Request must be json'}, 400, headers
+        return{"Error": "Experiment Does not exist"},400, headers
 
 # Get a specific experiment 
 def getExperimentById(experiment_id):
