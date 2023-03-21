@@ -56,6 +56,7 @@ def addInventoryItem():
              "device_id": request.json["device_id"],
              "istatus_id": request.json["istatus_id"],
              "condition_id": request.json["condition_id"],
+             "serialNum": request.json["serialNum"],
              "date_added": str(timeNow)
 
         }).execute()

@@ -64,5 +64,26 @@ def getSpecificDevice(device_id):
         return {"Device": device_details}, 201, headers
     else:
         return{"Error": "Device Does not exist"},400, headers
+    
+
+
+
+
+# get a specific device details with all its sensors
+def getSpecificDeviceIdFromName(device_name):
+    headers = {
+    'Access-Control-Allow-Origin': '*'
+    }
+    devicefromId = supabase.table("device").select('device_id').eq("device_name", device_name).execute()
+    deviceStr = devicefromId.json()
+    deviceObj = json.loads(deviceStr)
+    deviceData = deviceObj["data"]
+    if(deviceData):
+        device_id = deviceData[0]["device_id"]
+        return {"Device_id": device_id}, 201, headers
+    else:
+        return{"Error": "Device Does not exist"},400, headers
+    
+
 
 

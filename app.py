@@ -123,6 +123,11 @@ def insertDevice():
 def getSpecificDeviceInfo(device_id):
     return device.getSpecificDevice(device_id)
 
+# Route to get a specific device id from the decice name
+@app.get("/device/get/id/<device_name>")
+def getSpecificDeviceInfofromName(device_name):
+    return device.getSpecificDeviceIdFromName(device_name)
+
 # --------------------- Sensor Table methods -----------------------------#
 # Route to Insert new sensor
 @app.post("/sensor/insert")
@@ -155,9 +160,14 @@ def getAllAvailableItemsInInventory():
 
 # --------------------- Usage Table methods -----------------------------# 
 # Route to get specific usage id
-@app.get("/usage/get/<auth_id>/<experiment_id>")
-def getUsageIdFromUsrExp(auth_id, experiment_id):
-    return usage.getSpecificUseageIdFromUsrExp(auth_id, experiment_id)
+@app.get("/usage/get/<auth_id>/<experiment_id>/<inventory_id>")
+def getUsageIdFromUsrExp(auth_id, experiment_id, inventory_id):
+    return usage.getSpecificUseageIdFromUsrExp(auth_id, experiment_id, inventory_id)
+
+# Route to get specific usage id
+@app.get("/usage/get/inventory/<auth_id>/<experiment_id>")
+def getinventoryFromUsrExp(auth_id, experiment_id):
+    return usage.getSpecificinventoryIdFromUsrExp(auth_id, experiment_id)
 
 # Route to get usage from usage id
 @app.get("/usage/get/<usage_id>")
@@ -165,9 +175,9 @@ def getUsageFromUsageId(usage_id):
     return usage.getUseageInfo(usage_id)
 
 # Route to get usage from device name
-@app.get("/usage/get/device/<device_name>")
-def getUsageIdFromDeviceName(device_name):
-    return usage.getUseageIdfromName(device_name)
+@app.get("/usage/get/device/<device_name>/<serialNum>")
+def getUsageIdFromDeviceName(device_name,serialNum):
+    return usage.getUseageIdfromName(device_name,serialNum)
 
 # Route to get all usage
 @app.get("/usage/get/all")
@@ -185,6 +195,10 @@ def putUsageEndDate(usage_id):
     return usage.updateUsageId(usage_id)
 
 
+# Route to get the usage id and device name from authid and exp id 
+@app.get("/usage/get/usageid/<user_id>/<experiment_id>")
+def getusagefromauthidexpid(user_id, experiment_id):
+    return usage.getSpecificUseageIdFromUsrExponly(user_id, experiment_id)
 
 
 if __name__ == '__main__':
